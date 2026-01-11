@@ -170,7 +170,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 0.75rem;
-            margin-top: 0.5rem;
+            margin-top: 0.25rem;
             position: relative;
             flex-shrink: 0;
         }
@@ -678,7 +678,9 @@
                 progressCircle.style.strokeDashoffset = circumference;
                 return;
             }
-            const progress = totalSeconds / initialSeconds;
+            // When running, show progress for next second so 1s transition syncs with countdown
+            const displaySeconds = isRunning ? Math.max(0, totalSeconds - 1) : totalSeconds;
+            const progress = displaySeconds / initialSeconds;
             const offset = circumference - (progress * circumference);
             progressCircle.style.strokeDashoffset = offset;
         }
@@ -723,6 +725,10 @@
                 resetBtn.disabled = true;
                 disableInputs(true);
                 updateURL();
+
+                // Update progress immediately to start ring animation
+                updateProgress();
+
                 timerInterval = setInterval(() => {
                     totalSeconds--;
                     updateDisplay();
@@ -743,6 +749,9 @@
         function endTimer() {
             clearInterval(timerInterval);
             isRunning = false;
+            totalSeconds = 0;
+            updateDisplay();
+            updateProgress(); // Ensure ring completes to 0
             startBtn.textContent = 'START';
             startBtn.className = 'action-btn btn-start';
             display.classList.remove('pulse');
