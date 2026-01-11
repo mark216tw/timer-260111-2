@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bauhaus Timer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            /* Bauhaus Palette */
+            --color-bg: #F0F0F0;
+            --color-surface: #FFFFFF;
+            --color-fg: #121212;
+            --color-border: #121212;
+            --color-shadow: #121212;
+
+            --color-red: #D02020;
+            --color-blue: #1040C0;
+            --color-yellow: #F0C020;
+            --color-muted: #E0E0E0;
+
+            /* Spacing & Sizing */
+            --border-width-mobile: 2px;
+            --border-width-desktop: 4px;
+            --border-width: var(--border-width-mobile);
+
+            --shadow-offset: 4px;
+        }
+
+        @media (min-width: 768px) {
+            :root {
+                --border-width: var(--border-width-desktop);
+                --shadow-offset: 6px;
+            }
+        }
+
+        /* Dark Mode */
+        body.dark {
+            --color-bg: #121212;
+            --color-surface: #000000;
+            --color-fg: #F0F0F0;
+            --color-border: #F0F0F0;
+            --color-shadow: #F0F0F0;
+            --color-muted: #333333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', 'Noto Sans TC', sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-fg);
+            height: 100vh;
+            /* Strict full height */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: radial-gradient(var(--color-border) 1px, transparent 1px);
+            background-size: 24px 24px;
+            background-position: 0 0;
+            padding: 0.5rem;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            overflow: hidden;
+            /* Prevent scrolling */
+        }
+
+        body.dark {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px);
+        }
+
+        /* Decoration */
+        .geo-shape {
+            position: fixed;
+            z-index: -1;
+            opacity: 0.08;
+            pointer-events: none;
+        }
+
+        .shape-circle {
+            width: 30vh;
+            height: 30vh;
+            border-radius: 50%;
+            background: var(--color-blue);
+            top: -5vh;
+            left: -5vh;
+        }
+
+        .shape-square {
+            width: 20vh;
+            height: 20vh;
+            background: var(--color-red);
+            bottom: 5vh;
+            right: -5vh;
+            transform: rotate(15deg);
+        }
+
+        .shape-triangle {
+            width: 0;
+            height: 0;
+            border-left: 10vh solid transparent;
+            border-right: 10vh solid transparent;
+            border-bottom: 17.3vh solid var(--color-yellow);
+            top: 15%;
+            right: 5%;
+            opacity: 0.1;
+            transform: rotate(-15deg);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            /* Reduced width */
+            position: relative;
+            max-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bauhaus-card {
+            background-color: var(--color-surface);
+            border: var(--border-width) solid var(--color-border);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0px 0px var(--color-shadow);
+            padding: 1.25rem;
+            /* Tighter padding */
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease;
+        }
+
+        /* Header */
+        .card-decoration {
+            display: flex;
+            height: 10px;
+            width: 100%;
+            border-bottom: var(--border-width) solid var(--color-border);
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .deco-block {
+            flex: 1;
+            height: 100%;
+        }
+
+        .deco-red {
+            background-color: var(--color-red);
+        }
+
+        .deco-blue {
+            background-color: var(--color-blue);
+        }
+
+        .deco-yellow {
+            background-color: var(--color-yellow);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            margin-top: 0.5rem;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .title-input {
+            background: transparent;
+            border: none;
+            border-bottom: var(--border-width) solid var(--color-border);
+            color: var(--color-fg);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            /* Smaller title */
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -0.05em;
+            width: 100%;
+            padding: 0.25rem 0;
+            outline: none;
+            border-radius: 0;
+        }
+
+        .title-input:focus {
+            background-color: var(--color-muted);
+        }
+
+        .theme-toggle {
+            width: 36px;
+            height: 36px;
+            background: var(--color-yellow);
+            border: var(--border-width) solid var(--color-border);
+            box-shadow: 3px 3px 0px 0px var(--color-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-left: 0.75rem;
+            flex-shrink: 0;
+            font-size: 1.1rem;
+            transition: transform 0.1s;
+        }
+
+        .theme-toggle:active {
+            transform: translate(2px, 2px);
+            box-shadow: none;
+        }
+
+        /* Timer Ring */
+        .timer-container {
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1rem;
+            padding: 0.5rem 0;
+            flex-shrink: 1;
+            /* Allow shrinking */
+            min-height: 0;
+            /* Important for flex items to shrink below content size */
+        }
+
+        .progress-ring {
+            transform: rotate(-90deg);
+            width: 220px;
+            /* Reduced from 280px */
+            height: 220px;
+            filter: drop-shadow(var(--shadow-offset) var(--shadow-offset) 0px var(--color-shadow));
+            max-height: 25vh;
+            /* Responsive height constraint */
+            max-width: 25vh;
+        }
+
+        .progress-ring-circle {
+            stroke: var(--color-muted);
+            fill: var(--color-surface);
+            stroke-width: 12;
+        }
+
+        .progress-ring-progress {
+            stroke: var(--color-blue);
+            fill: none;
+            stroke-width: 12;
+            stroke-linecap: square;
+            transition: stroke-dashoffset 1s linear;
+        }
+
+        body.dark .progress-ring-progress {
+            stroke: var(--color-red);
+        }
+
+        .timer-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.75rem;
+            /* Reduced from 3.5rem */
+            font-weight: 900;
+            color: var(--color-fg);
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.05em;
+            z-index: 10;
+        }
+
+        /* Controls */
+        .controls {
+            border: var(--border-width) solid var(--color-border);
+            padding: 1rem;
+            /* Compact */
+            background: var(--color-surface);
+            margin-bottom: 1rem;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .section-label {
+            position: absolute;
+            top: -9px;
+            left: 8px;
+            background: var(--color-border);
+            color: var(--color-bg);
+            padding: 0 4px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            line-height: 1;
+        }
+
+        body.dark .section-label {
+            background: var(--color-fg);
+            color: var(--color-bg);
+        }
+
+        .time-adjusters {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .adjuster-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .adjuster-label {
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.65rem;
+        }
+
+        .adjuster-value {
+            font-size: 1.25rem;
+            font-weight: 900;
+            border-bottom: var(--border-width) solid var(--color-border);
+            min-width: 1.5rem;
+            text-align: center;
+        }
+
+        .adjuster-buttons {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .adj-btn {
+            width: 24px;
+            height: 24px;
+            border: var(--border-width) solid var(--color-border);
+            background: var(--color-surface);
+            color: var(--color-fg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: 900;
+            font-size: 0.9rem;
+            box-shadow: 2px 2px 0px 0px var(--color-shadow);
+        }
+
+        .adj-btn:hover:not(:disabled) {
+            background: var(--color-muted);
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px 0px var(--color-shadow);
+        }
+
+        .adj-btn:active:not(:disabled) {
+            transform: translate(1px, 1px);
+            box-shadow: none;
+        }
+
+        .presets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            justify-content: center;
+        }
+
+        .preset-btn {
+            background: var(--color-surface);
+            border: var(--border-width) solid var(--color-border);
+            padding: 0.25rem 0.6rem;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 0.75rem;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px 0px var(--color-shadow);
+            color: var(--color-fg);
+        }
+
+        .preset-btn:hover:not(:disabled) {
+            background-color: var(--color-yellow);
+            color: #121212;
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px 0px var(--color-shadow);
+        }
+
+        /* Actions */
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            flex-shrink: 0;
+            margin-bottom: 0.75rem;
+        }
+
+        .action-btn {
+            border: var(--border-width) solid var(--color-border);
+            padding: 0.8rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0px 0px var(--color-shadow);
+            transition: all 0.1s;
+        }
+
+        .action-btn:hover:not(:disabled) {
+            transform: translate(-2px, -2px);
+            box-shadow: calc(var(--shadow-offset) + 2px) calc(var(--shadow-offset) + 2px) 0px 0px var(--color-shadow);
+        }
+
+        .action-btn:active:not(:disabled) {
+            transform: translate(2px, 2px);
+            box-shadow: none;
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            background: var(--color-muted);
+            box-shadow: none;
+            transform: translate(2px, 2px);
+        }
+
+        .btn-start {
+            background-color: var(--color-blue);
+            color: #FFFFFF;
+        }
+
+        .btn-pause {
+            background-color: var(--color-yellow);
+            color: #121212;
+        }
+
+        .btn-reset {
+            background-color: var(--color-red);
+            color: #FFFFFF;
+        }
+
+        @keyframes pulse-border {
+            0% {
+                border-color: var(--color-border);
+            }
+
+            50% {
+                border-color: var(--color-red);
+            }
+
+            100% {
+                border-color: var(--color-border);
+            }
+        }
+
+        .pulse {
+            animation: pulse-border 1s infinite;
+        }
+
+        /* Media Queries for very short screens */
+        @media (max-height: 600px) {
+            .bauhaus-card {
+                padding: 0.75rem;
+            }
+
+            .header {
+                margin-bottom: 0.5rem;
+            }
+
+            .controls {
+                padding: 0.5rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .timer-container {
+                margin-bottom: 0.5rem;
+            }
+
+            .timer-display {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="geo-shape shape-circle"></div>
+    <div class="geo-shape shape-square"></div>
+    <div class="geo-shape shape-triangle"></div>
+
+    <div class="container">
+        <div class="bauhaus-card">
+            <div class="card-decoration">
+                <div class="deco-block deco-blue"></div>
+                <div class="deco-block deco-yellow"></div>
+                <div class="deco-block deco-red"></div>
+            </div>
+
+            <div class="header">
+                <input type="text" id="appTitle" class="title-input" value="BAUHAUS TIMER">
+                <button class="theme-toggle" onclick="toggleTheme()">
+                    <span id="themeIcon">◑</span>
+                </button>
+            </div>
+
+            <div class="timer-container">
+                <svg class="progress-ring" viewBox="0 0 200 200">
+                    <circle cx="100" cy="100" r="90" stroke="var(--color-muted)" stroke-width="12" fill="none"
+                        opacity="0.3"></circle>
+                    <circle class="progress-ring-circle" cx="100" cy="100" r="90"></circle>
+                    <circle id="progressCircle" class="progress-ring-progress" cx="100" cy="100" r="90"></circle>
+                </svg>
+                <div id="display" class="timer-display">00:00:00</div>
+            </div>
+
+            <div id="controls" class="controls">
+                <div class="section-label">CONFIGURE</div>
+
+                <div class="time-adjusters">
+                    <div class="adjuster-group">
+                        <div class="adjuster-label">HRS</div>
+                        <div class="adjuster-buttons">
+                            <button class="adj-btn adjust-btn" onclick="adjust('h', -1)">−</button>
+                            <button class="adj-btn adjust-btn" onclick="adjust('h', 1)">+</button>
+                        </div>
+                        <div class="adjuster-value" id="hoursDisplay">00</div>
+                    </div>
+                    <div class="adjuster-group">
+                        <div class="adjuster-label">MIN</div>
+                        <div class="adjuster-buttons">
+                            <button class="adj-btn adjust-btn" onclick="adjust('m', -1)">−</button>
+                            <button class="adj-btn adjust-btn" onclick="adjust('m', 1)">+</button>
+                        </div>
+                        <div class="adjuster-value" id="minutesDisplay">00</div>
+                    </div>
+                    <div class="adjuster-group">
+                        <div class="adjuster-label">SEC</div>
+                        <div class="adjuster-buttons">
+                            <button class="adj-btn adjust-btn" onclick="adjust('s', -1)">−</button>
+                            <button class="adj-btn adjust-btn" onclick="adjust('s', 1)">+</button>
+                        </div>
+                        <div class="adjuster-value" id="secondsDisplay">00</div>
+                    </div>
+                </div>
+
+                <div class="presets">
+                    <button class="preset-btn adjust-btn" onclick="setPreset(5)">5 MIN</button>
+                    <button class="preset-btn adjust-btn" onclick="setPreset(10)">10 MIN</button>
+                    <button class="preset-btn adjust-btn" onclick="setPreset(15)">15 MIN</button>
+                    <button class="preset-btn adjust-btn" onclick="setPreset(25)">25 MIN</button>
+                    <button class="preset-btn adjust-btn" onclick="setPreset(30)">30 MIN</button>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button id="startBtn" class="action-btn btn-start" onclick="toggleTimer()">START</button>
+                <button id="resetBtn" class="action-btn btn-reset" onclick="resetTimer()">RESET</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let totalSeconds = 0;
+        let initialSeconds = 0;
+        let timerInterval = null;
+        let isRunning = false;
+        let startTimestamp = 0; // Track when timer started
+
+        const display = document.getElementById('display');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const adjustBtns = document.querySelectorAll('.adjust-btn');
+        const appTitleInput = document.getElementById('appTitle');
+        const progressCircle = document.getElementById('progressCircle');
+        const hoursDisplay = document.getElementById('hoursDisplay');
+        const minutesDisplay = document.getElementById('minutesDisplay');
+        const secondsDisplay = document.getElementById('secondsDisplay');
+
+        const radius = 90;
+        const circumference = 2 * Math.PI * radius;
+        progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+        progressCircle.style.strokeDashoffset = circumference;
+
+        // Audio System
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(freq, duration, type = 'sine') {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        window.onload = () => {
+            const savedData = JSON.parse(localStorage.getItem('timer_settings') || '{}');
+            const urlParams = new URLSearchParams(window.location.search);
+
+            // Load theme
+            if (savedData.theme === 'dark') {
+                document.body.classList.add('dark');
+                updateThemeIcon();
+            }
+
+            // Load from URL if available
+            const urlTime = urlParams.get('t');
+            const urlState = urlParams.get('s');
+            const urlTitle = urlParams.get('title');
+            const urlStart = urlParams.get('start');
+
+            if (urlTitle) {
+                appTitleInput.value = decodeURIComponent(urlTitle);
+            } else {
+                appTitleInput.value = savedData.title || "BAUHAUS TIMER";
+            }
+
+            if (urlTime) {
+                initialSeconds = parseInt(urlTime);
+
+                if (urlStart && (urlState === 'running' || urlState === 'paused')) {
+                    startTimestamp = parseInt(urlStart);
+                    const now = Math.floor(Date.now() / 1000);
+                    const elapsed = now - startTimestamp;
+
+                    if (urlState === 'running') {
+                        totalSeconds = Math.max(0, initialSeconds - elapsed);
+                        if (totalSeconds > 0) {
+                            isRunning = true;
+                            startBtn.textContent = 'PAUSE';
+                            startBtn.className = 'action-btn btn-pause';
+                            display.classList.add('pulse');
+                            resetBtn.disabled = true;
+                            disableInputs(true);
+                            timerInterval = setInterval(() => {
+                                totalSeconds--;
+                                updateDisplay();
+                                updateProgress();
+                                if (totalSeconds <= 0) endTimer();
+                            }, 1000);
+                        } else {
+                            totalSeconds = 0;
+                        }
+                    } else if (urlState === 'paused') {
+                        totalSeconds = Math.max(0, initialSeconds - elapsed);
+                    }
+                } else {
+                    totalSeconds = initialSeconds;
+                }
+            } else {
+                totalSeconds = savedData.lastTime || 0;
+                initialSeconds = totalSeconds;
+            }
+
+            updateDisplay();
+            updateProgress();
+        };
+
+        function updateDisplay() {
+            const h = Math.floor(totalSeconds / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const s = totalSeconds % 60;
+            display.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            hoursDisplay.textContent = String(h).padStart(2, '0');
+            minutesDisplay.textContent = String(m).padStart(2, '0');
+            secondsDisplay.textContent = String(s).padStart(2, '0');
+        }
+
+        function updateProgress() {
+            if (initialSeconds === 0) {
+                progressCircle.style.strokeDashoffset = circumference;
+                return;
+            }
+            const progress = totalSeconds / initialSeconds;
+            const offset = circumference - (progress * circumference);
+            progressCircle.style.strokeDashoffset = offset;
+        }
+
+        function adjust(unit, val) {
+            if (isRunning) return;
+            playSound(400, 0.05);
+            if (unit === 'h') totalSeconds += val * 3600;
+            if (unit === 'm') totalSeconds += val * 60;
+            if (unit === 's') totalSeconds += val;
+            if (totalSeconds < 0) totalSeconds = 0;
+            initialSeconds = totalSeconds;
+            updateDisplay();
+            updateProgress();
+            saveState();
+            updateURL();
+        }
+
+        function setPreset(mins) {
+            if (isRunning) return;
+            playSound(500, 0.1);
+            totalSeconds = mins * 60;
+            initialSeconds = totalSeconds;
+            updateDisplay();
+            updateProgress();
+            saveState();
+            updateURL();
+        }
+
+        function toggleTimer() {
+            if (totalSeconds <= 0 && !isRunning) return;
+            playSound(600, 0.1);
+            isRunning = !isRunning;
+
+            if (isRunning) {
+                const elapsed = initialSeconds - totalSeconds;
+                startTimestamp = Math.floor(Date.now() / 1000) - elapsed;
+
+                startBtn.textContent = 'PAUSE';
+                startBtn.className = 'action-btn btn-pause';
+                display.classList.add('pulse');
+                resetBtn.disabled = true;
+                disableInputs(true);
+                updateURL();
+                timerInterval = setInterval(() => {
+                    totalSeconds--;
+                    updateDisplay();
+                    updateProgress();
+                    if (totalSeconds <= 0) endTimer();
+                }, 1000);
+            } else {
+                clearInterval(timerInterval);
+                startBtn.textContent = 'START';
+                startBtn.className = 'action-btn btn-start';
+                display.classList.remove('pulse');
+                resetBtn.disabled = false;
+                updateURL();
+                saveState();
+            }
+        }
+
+        function endTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            startBtn.textContent = 'START';
+            startBtn.className = 'action-btn btn-start';
+            display.classList.remove('pulse');
+            resetBtn.disabled = false;
+            disableInputs(false);
+            updateURL();
+            let count = 0;
+            const alarm = setInterval(() => {
+                playSound(880, 0.5, 'square');
+                count++;
+                if (count >= 5) clearInterval(alarm);
+            }, 1000);
+        }
+
+        function resetTimer() {
+            playSound(450, 0.08);
+            clearInterval(timerInterval);
+            isRunning = false;
+            totalSeconds = initialSeconds;
+            startTimestamp = 0;
+            startBtn.textContent = 'START';
+            startBtn.className = 'action-btn btn-start';
+            display.classList.remove('pulse');
+            disableInputs(false);
+            updateDisplay();
+            updateProgress();
+            updateURL();
+        }
+
+        function disableInputs(disabled) {
+            adjustBtns.forEach(btn => btn.disabled = disabled);
+            appTitleInput.disabled = disabled;
+        }
+
+        function saveState() {
+            const theme = document.body.classList.contains('dark') ? 'dark' : 'light';
+            localStorage.setItem('timer_settings', JSON.stringify({
+                title: appTitleInput.value,
+                lastTime: initialSeconds,
+                theme: theme
+            }));
+        }
+
+        function updateURL() {
+            const url = new URL(window.location);
+            url.search = '';
+
+            if (initialSeconds > 0 || isRunning) {
+                url.searchParams.set('t', initialSeconds);
+                if (appTitleInput.value && appTitleInput.value !== 'BAUHAUS TIMER') {
+                    url.searchParams.set('title', encodeURIComponent(appTitleInput.value));
+                }
+                if (isRunning) {
+                    url.searchParams.set('s', 'running');
+                    url.searchParams.set('start', startTimestamp);
+                } else if (totalSeconds !== initialSeconds && totalSeconds > 0) {
+                    const elapsed = initialSeconds - totalSeconds;
+                    const pausedStartTime = Math.floor(Date.now() / 1000) - elapsed;
+                    url.searchParams.set('s', 'paused');
+                    url.searchParams.set('start', pausedStartTime);
+                }
+            }
+
+            window.history.replaceState({}, '', url);
+        }
+
+        function updateThemeIcon() {
+            const icon = document.getElementById('themeIcon');
+            if (document.body.classList.contains('dark')) {
+                icon.innerHTML = '☀';
+                icon.style.color = '#121212';
+            } else {
+                icon.innerHTML = '◑';
+                icon.style.color = '#121212';
+            }
+        }
+
+        function toggleTheme() {
+            playSound(550, 0.08);
+            document.body.classList.toggle('dark');
+            updateThemeIcon();
+            saveState();
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                toggleTimer();
+            }
+            if (!isRunning) {
+                if (e.key === 'ArrowUp') { e.preventDefault(); adjust('m', 1); }
+                if (e.key === 'ArrowDown') { e.preventDefault(); adjust('m', -1); }
+                if (e.key === 'r' || e.key === 'R') { e.preventDefault(); resetTimer(); }
+            }
+        });
+
+        appTitleInput.addEventListener('input', () => {
+            saveState();
+            updateURL();
+        });
+    </script>
+</body>
+
+</html>
